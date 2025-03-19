@@ -14,6 +14,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" suppressHydrationWarning>
+      <head>
+        <title>Calculatrice Complexe</title>
+        <meta name="description" content="Une calculatrice avancée avec support pour les nombres complexes et graphiques 3D" />
+      </head>
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <main className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
@@ -32,8 +36,3 @@ export default function RootLayout({
     </html>
   );
 }
-
-export const metadata = {
-  title: "Calculatrice Complexe",
-  description: "Une calculatrice avancée avec support pour les nombres complexes et graphiques 3D",
-};
