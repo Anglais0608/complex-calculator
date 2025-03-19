@@ -389,13 +389,39 @@ export class ComplexCalculatorEngine {
       // Diviser l'équation en parties gauche et droite
       const [leftSide, rightSide] = equation.split("=").map(side => side.trim());
       
-      // Créer une fonction pour évaluer l'équation
+      // Créer une fonction pour évaluer les deux côtés de l'équation
       const evalEquation = (a: number): Complex => {
         try {
-          // Remplacer 'a' dans l'équation et évaluer
-          const expr = leftSide.replace(/a/g, a.toString());
-          return math.evaluate(expr);
+          // Remplacer 'a' dans les deux côtés de l'équation
+          const leftExpr = leftSide.replace(/a/g, a.toString());
+          const rightExpr = rightSide.replace(/a/g, a.toString());
+          
+          // Évaluer les deux côtés
+          let leftResult, rightResult;
+          
+          try {
+            leftResult = math.evaluate(leftExpr);
+          } catch (e) {
+            leftResult = math.complex(0, 0);
+          }
+          
+          try {
+            rightResult = math.evaluate(rightExpr);
+          } catch (e) {
+            rightResult = math.complex(0, 0);
+          }
+          
+          // Si l'équation est de la forme a^x = x ou similaire
+          if (rightSide === 'x' || rightSide.includes('x') && !rightSide.includes('a')) {
+            // Pour les équations comme a^x = x, nous voulons tracer a^x directement
+            return leftResult;
+          } else {
+            // Pour d'autres équations, calculer la différence entre les deux côtés
+            // La solution de l'équation est là où cette différence est proche de zéro
+            return math.subtract(leftResult, rightResult);
+          }
         } catch (error) {
+          console.error("Erreur d'évaluation:", error);
           return math.complex(0, 0);
         }
       };
@@ -417,6 +443,54 @@ export class ComplexCalculatorEngine {
       return points;
     } catch (error) {
       console.error("Erreur de génération de points pour graphique:", error);
+      return [];
+    }
+  }
+  
+  // Fonction spécifique pour tracer l'équation a^x = x
+  static generateAPowerXEqualsXPoints(resolution: number = 100): any[] {
+    try {
+      const points = [];
+      const step = 10 / resolution;
+      
+      for (let a = -5; a <= 5; a += step) {
+        if (a !== 0) { // Éviter a=0 car 0^x n'est pas défini pour x négatif
+          try {
+            // Pour chaque valeur de a, calculer a^x pour x=1
+            // Nous utilisons x=1 comme point de départ car a^1 = a
+            let x = 1;
+            
+            // Itérer pour trouver une approximation de la solution
+            // où a^x ≈ x (méthode du point fixe)
+            for (let i = 0; i < 10; i++) {
+              x = Math.pow(a, x);
+              
+              // Si la valeur diverge ou n'est pas un nombre, arrêter
+              if (isNaN(x) || !isFinite(x)) {
+                break;
+              }
+            }
+            
+            // Si nous avons une valeur valide, calculer a^x
+            if (!isNaN(x) && isFinite(x)) {
+              // Convertir en nombre complexe pour la cohérence
+              const result = math.complex(x, 0);
+              
+              points.push({
+                a,
+                re: result.re,
+                im: result.im
+              });
+            }
+          } catch (error) {
+            // Ignorer les erreurs et continuer
+          }
+        }
+      }
+      
+      return points;
+    } catch (error) {
+      console.error("Erreur de génération de points pour a^x=x:", error);
       return [];
     }
   }
